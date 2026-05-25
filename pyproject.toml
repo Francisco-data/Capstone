@@ -1,0 +1,18 @@
+[project]
+name = "unified-forecasting"
+version = "0.1.0"
+description = "Unified forecasting project experiments and preprocessing utilities."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ipykernel",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+    "torch",
+]
+
+[tool.uv]
+package = false

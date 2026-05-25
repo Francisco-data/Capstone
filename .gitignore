@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+.env
+.env.*
+
+# Large/local data files
+data/m5/raw/
+data/m5/preprocessed_all.parquet
+data/m5/processed/m5_long_features.parquet
+
+# Optional generated processed data
+data/m5/processed/
+data/m5/preprocessed_10_sample.csv
