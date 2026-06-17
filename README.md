@@ -1,54 +1,121 @@
 # Unified Forecasting Project
 
-This project repository is structured to facilitate a week 0 setup for your unified forecasting project. It includes a clear folder hierarchy, example code to preprocess a small sample of the M5 dataset, and basic environment configuration files. You should complete this setup before starting the main research work outlined in your project planning document.
+This project uses the M5 dataset to build a unified forecasting pipeline.
 
-## Directory structure
+Implemented so far:
 
-```text
-unified_forecasting/
-├── README.md
-├── pyproject.toml
-├── preprocess_sample.py
-└── data/
-    └── m5/
-        ├── raw/
-        │   └── (place the original M5 CSV files here)
-        └── preprocessed_sample.csv
+- preprocessing raw M5 data
+- creating feature-engineered long-format data
+- generating split metadata for intermittent demand and cold-start evaluation
+
+
+## Pipeline
+
+```mermaid
+flowchart TD
+    A[M5 Data] --> B[Preprocess]
+    B --> C[Splits]
+    C --> D[Features]
+
+    D --> E[DLinear]
+    D --> F[Metadata]
+    F --> E
+
+    E --> G[Zero Head]
+    E --> H[Demand Head]
+
+    G --> I[Forecast]
+    H --> I
+
+    I --> J[Scenarios]
+    J --> K[Metrics]
+
+    L[Ensemble] -. cold-start baseline .-> J
+    D --> L
 ```
 
-* `pyproject.toml` lists the core Python dependencies used for the preprocessing script and baseline experiments.
-* `preprocess_sample.py` is a Python script that reads a few rows from the M5 dataset, merges sales, calendar, and price tables, performs basic cleaning, and writes a small sample to `data/m5/preprocessed_sample.csv`. You can run this script once the M5 dataset is available in the `raw` directory.
-* `data/m5/raw/` should contain the original M5 files downloaded from Kaggle (`calendar.csv`, `sell_prices.csv`, `sales_train_validation.csv`, etc.). Do not commit large data files to version control.
-* `data/m5/preprocessed_sample.csv` is a placeholder file that you can overwrite with the output of `preprocess_sample.py`.
+The diagram shows the conceptual flow. In the current scripts, feature engineering is run before split generation because splits are created from `m5_long_features.parquet`.
 
-## Setup instructions
+## Setup
 
-1. Create a Python virtual environment with uv:
-
-   ```bash
-   uv venv
-   ```
-
-2. Sync the project dependencies:
-
-   ```bash
-   uv sync
-   ```
-
-3. Download the M5 dataset from Kaggle and place the CSV files into `data/m5/raw/`.
-
-4. Run the preprocessing script:
-
-   ```bash
-   uv run python preprocess_sample.py --data-dir data/m5/raw --output data/m5/preprocessed_sample.csv --num-items 2
-   ```
-
-The `--num-items` parameter controls how many items are sampled from the dataset for quick experiments. Once the script completes, you should have a `preprocessed_sample.csv` file ready for initial exploratory analysis and baseline experiments.
-
-To preprocess every sales row from `sales_train_validation.csv`, use `--all`:
+Create the virtual environment and install dependencies:
 
 ```bash
-uv run python preprocess_sample.py --data-dir data/m5/raw --output data/m5/preprocessed_all.parquet --all
+uv venv
+uv sync
 ```
 
-This full output can be very large because the sales file has many item/store rows and many daily sales columns. Parquet is used for the full output because it is usually smaller and faster to reload than CSV.
+## Data Location
+
+Place the raw M5 CSV files in:
+
+```text
+data/m5/raw/
+```
+
+Expected files include:
+
+- `calendar.csv`
+- `sell_prices.csv`
+- `sales_train_validation.csv`
+- optionally `sales_train_evaluation.csv`
+- optionally `sample_submission.csv`
+
+## Preprocessing and Features
+
+Scripts:
+
+- `data/preprocess_sample.py`
+- `data/features.py`
+
+Create a small preprocessed sample:
+
+```bash
+uv run python data/preprocess_sample.py --data-dir data/m5/raw --output data/m5/preprocessed_10_sample.csv --num-items 10
+```
+
+Create the full preprocessed dataset:
+
+```bash
+uv run python data/preprocess_sample.py --data-dir data/m5/raw --output data/m5/preprocessed_all.parquet --all
+```
+
+Create the full feature-engineered dataset:
+
+```bash
+uv run python data/features.py --input data/m5/preprocessed_all.parquet --output data/m5/processed/m5_long_features.parquet
+```
+
+Optional sample feature CSV:
+
+```bash
+uv run python data/features.py --input data/m5/preprocessed_10_sample.csv --output data/m5/processed/m5_10_features.csv
+```
+
+## Split Metadata
+
+Script:
+
+- `data/splits.py`
+
+Generate split metadata:
+
+```bash
+uv run python data/splits.py --input data/m5/processed/m5_long_features.parquet --output-dir data/m5/processed/splits
+```
+
+This creates:
+
+- `intermittent_series.csv`
+- `cold_start_item_series.csv`
+- `cold_start_store_series.csv`
+- `normal_series.csv`
+- `combined_exclusive_series.csv`
+- `heldout_items.csv`
+- `heldout_stores.csv`
+
+## Generated Outputs
+
+Processed files can be large. Parquet is recommended for full M5 outputs.
+
+Generated data files should generally not be committed unless needed for a specific review.
