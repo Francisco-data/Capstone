@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.terminal.activateEnvironment": true,
+  "jupyter.jupyterServerType": "local",
+  "jupyter.kernels.excludePythonEnvironments": [
+    "C:\\Users\\Francisco\\Documents\\Documentos-secundario\\Visual-Studio-Code-Repository\\CT5108_Capstone\\LTSF-Linear\\.venv",
+    "C:\\Users\\Francisco\\Documents\\Documentos-secundario\\Visual-Studio-Code-Repository\\CT5108_Capstone\\LTSF-Linear\\.venv\\Scripts\\python.exe"
+  ]
+}

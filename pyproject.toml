@@ -6,12 +6,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "ipykernel",
-    "matplotlib",
-    "numpy",
-    "pandas",
+    "matplotlib>=3.7",
+    "numpy>=1.24",
+    "pandas>=2.0",
     "pyarrow",
     "scikit-learn",
-    "torch",
+    "torch>=2.1",
+    "tqdm>=4.65",
 ]
 
 [tool.uv]
