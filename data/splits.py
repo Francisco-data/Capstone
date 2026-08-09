@@ -103,7 +103,8 @@ def check_required_columns(input_path: Path) -> None:
 def create_series_metadata(df: pd.DataFrame) -> pd.DataFrame:
     """Aggregate the long feature table into one row per series."""
     series_metadata = (
-        df.groupby(
+        df
+        .groupby(
             [
                 "id",
                 "item_id",
@@ -153,19 +154,19 @@ def add_split_flags(
     heldout_stores: list[str],
 ) -> pd.DataFrame:
     """Add split flags to the series metadata."""
-    # Intermittent demand means the series has many zero-sales days.
+    # Intermittent demand means the series has many zero-sales days
     series_metadata["is_intermittent"] = (
         series_metadata["zero_ratio"] >= intermittent_threshold
     ).astype("int8")
 
     # Cold-start item/store flags mark series that should be hidden for those
-    # evaluation cases.
-    series_metadata["is_cold_start_item"] = series_metadata["item_id"].isin(
-        heldout_items
-    ).astype("int8")
-    series_metadata["is_cold_start_store"] = series_metadata["store_id"].isin(
-        heldout_stores
-    ).astype("int8")
+    # evaluation cases
+    series_metadata["is_cold_start_item"] = (
+        series_metadata["item_id"].isin(heldout_items).astype("int8")
+    )
+    series_metadata["is_cold_start_store"] = (
+        series_metadata["store_id"].isin(heldout_stores).astype("int8")
+    )
     series_metadata["is_normal"] = (
         (series_metadata["zero_ratio"] < intermittent_threshold)
         & (series_metadata["is_cold_start_item"] == 0)
@@ -195,7 +196,7 @@ def add_exclusive_split(series_metadata: pd.DataFrame) -> pd.DataFrame:
         "exclusive_split",
     ] = "cold_start_item"
 
-    # Add one-hot style flags for quick filtering.
+    # Add one-hot style flags for quick filtering
     series_metadata["is_exclusive_cold_start_item"] = (
         series_metadata["exclusive_split"] == "cold_start_item"
     ).astype("int8")
@@ -221,9 +222,9 @@ def save_split_files(
     """Save separate CSV files for each evaluation group."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    series_metadata.loc[
-        series_metadata["is_intermittent"] == 1, SERIES_COLUMNS
-    ].to_csv(output_dir / "intermittent_series.csv", index=False)
+    series_metadata.loc[series_metadata["is_intermittent"] == 1, SERIES_COLUMNS].to_csv(
+        output_dir / "intermittent_series.csv", index=False
+    )
 
     series_metadata.loc[
         series_metadata["is_cold_start_item"] == 1, SERIES_COLUMNS
@@ -238,14 +239,18 @@ def save_split_files(
     )
 
     heldout_item_rows = (
-        series_metadata.loc[series_metadata["item_id"].isin(heldout_items), ["item_id", "item_idx"]]
+        series_metadata
+        .loc[series_metadata["item_id"].isin(heldout_items), ["item_id", "item_idx"]]
         .drop_duplicates()
         .sort_values("item_id")
     )
     heldout_item_rows.to_csv(output_dir / "heldout_items.csv", index=False)
 
     heldout_store_rows = (
-        series_metadata.loc[series_metadata["store_id"].isin(heldout_stores), ["store_id", "store_idx"]]
+        series_metadata
+        .loc[
+            series_metadata["store_id"].isin(heldout_stores), ["store_id", "store_idx"]
+        ]
         .drop_duplicates()
         .sort_values("store_id")
     )
@@ -280,8 +285,12 @@ def run_split_pipeline(
     item_holdout_count = math.ceil(
         series_metadata["item_id"].nunique() * item_holdout_fraction
     )
-    heldout_items = choose_holdouts(series_metadata["item_id"], item_holdout_count, seed)
-    heldout_stores = choose_holdouts(series_metadata["store_id"], store_holdout_count, seed)
+    heldout_items = choose_holdouts(
+        series_metadata["item_id"], item_holdout_count, seed
+    )
+    heldout_stores = choose_holdouts(
+        series_metadata["store_id"], store_holdout_count, seed
+    )
 
     print("Held-out item count:", len(heldout_items))
     print("Held-out store count:", len(heldout_stores))

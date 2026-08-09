@@ -42,7 +42,7 @@ def preprocess_sample(data_dir, output_path, num_items, use_all) -> None:
         print("This take around 5 minutes and creates a Parquet file.")
         sales_to_process = sales
     else:
-        # Keep only the first few items sales to keep the output small.
+        # Keep only the first few items sales to keep the output small
         selected_ids = sales["id"].unique()[:num_items]
         sales_to_process = sales[sales["id"].isin(selected_ids)].copy()
         print(f"Selected {len(selected_ids)} item(s).")
